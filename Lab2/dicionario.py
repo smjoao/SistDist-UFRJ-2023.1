@@ -2,12 +2,18 @@ import os
 import json
 
 class Dicionario:
+    """Componente Dicionário - Implementa o acesso, a remoção e a edição do dicionário
+    assim como a leitura e escrita do arquivo que armazena o dicionário."""
+    
+    _DICT_FILE_PATH = ''
+    """Caminho para o arquivo que guarda o dicionario"""
 
     _dict = {}
+    """Dicionario que guarda os pares chave-valor."""
 
     def __init__(self, dict_path):
         """ Recebe um arquivo contendo o dicionario em json
-        e retorna um objeto `Dicionario`. Se o caminho de arquivo
+        e inctancia um objeto `Dicionario`. Se o caminho de arquivo
         informado não existir, cria o arquivo.
 
         Args:
