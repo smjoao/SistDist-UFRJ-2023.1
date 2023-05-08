@@ -314,7 +314,7 @@ class Servidor:
 
 if __name__ == '__main__':
     # Define os parametros padroes
-    end = ''
+    end = 'localhost'
     porta = 5016
     dict_path = 'dict.json'
 
