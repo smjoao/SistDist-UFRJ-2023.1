@@ -21,9 +21,16 @@ FnNotify: TypeAlias = Callable[[list[Content]], None]
 
 class BrokerService(rpyc.Service): # type: ignore
 
+    _topics = []
+
+    _users = {}
+
     # Não é exposed porque só o "admin" tem acesso
     def create_topic(self, id: UserId, topicname: str) -> Topic:
-        assert False, "TO BE IMPLEMENTED"
+        if not topicname in self._topics:
+            self._topics.append(topicname)
+
+        return topicname
 
     # Handshake
 
@@ -33,7 +40,7 @@ class BrokerService(rpyc.Service): # type: ignore
     # Query operations
 
     def exposed_list_topics(self) -> list[Topic]:
-        assert False, "TO BE IMPLEMENTED"
+        return self._topics
 
     # Publisher operations
 
