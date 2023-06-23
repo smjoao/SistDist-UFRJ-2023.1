@@ -21,14 +21,19 @@ FnNotify: TypeAlias = Callable[[list[Content]], None]
 
 class BrokerService(rpyc.Service): # type: ignore
 
+    # Lista de tópicos
     _topics = []
 
-    _users = {}
+    # Dict onde as chaves são os tópicos e os valores são informações do usuário
+    _subscriptions = {}
 
     # Não é exposed porque só o "admin" tem acesso
     def create_topic(self, id: UserId, topicname: str) -> Topic:
+
+        # Se o tópico não existe, adiciona ele à lista de tópicos e adiciona uma chave na lista de inscrições
         if not topicname in self._topics:
             self._topics.append(topicname)
+            self._subscriptions[topicname] = []
 
         return topicname
 
@@ -56,10 +61,28 @@ class BrokerService(rpyc.Service): # type: ignore
         """
         Função responde se `id` está inscrito no `topic`
         """
-        assert False, "TO BE IMPLEMENTED"
+        
+        # Se o tópico não existe, retorna False
+        if not topic in self._topics:
+            return False
+        
+        # Se o usuário ainda não estiver inscrito, adiciona ele à lista de inscrições do tópico
+        if not id in self._subscriptions[topic]:
+            self._subscriptions[topic].append(id)
 
+        return True
+    
     def exposed_unsubscribe_to(self, id: UserId, topic: Topic) -> bool:
         """
         Função responde se `id` não está inscrito no `topic`
         """
-        assert False, "TO BE IMPLEMENTED"
+
+        # Se o tópico não existe, retorna True
+        if not topic in self._topics:
+            return True
+        
+        # Se o usuário estiver inscrito, remove ele da lista de inscrições do tópico
+        if id in self._subscriptions[topic]:
+            self._subscriptions[topic].remove(id)
+
+        return True
