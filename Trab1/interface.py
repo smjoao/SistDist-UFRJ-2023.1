@@ -51,6 +51,10 @@ class BrokerService(rpyc.Service): # type: ignore
     # Handshake
     @rpyc.exposed
     def login(self, id: UserId, callback: FnNotify) -> bool:
+        # Verifica se esse id já está logado
+        if id in self._online:
+            return False
+            
         self.id = id
         self.callback = callback
         self._online.append(id)
