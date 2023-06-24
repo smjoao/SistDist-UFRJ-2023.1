@@ -19,6 +19,7 @@ class Content:
 
 FnNotify: TypeAlias = Callable[[list[Content]], None]
 
+@rpyc.service
 class BrokerService(rpyc.Service): # type: ignore
 
     # Lista de tópicos
@@ -26,6 +27,16 @@ class BrokerService(rpyc.Service): # type: ignore
 
     # Dict onde as chaves são os tópicos e os valores são informações do usuário
     _subscriptions = {}
+
+    # Dict com as notificações pendentes. A chave é o usuário e o valor é uma lista de Content
+    _queue = {}
+    
+    # Lista de usuários online
+    _online = []
+
+    def on_disconnect(self, conn):
+        self._online.remove(self.id)
+        print(f'Usuário {self.id} desconectou.')
 
     # Não é exposed porque só o "admin" tem acesso
     def create_topic(self, id: UserId, topicname: str) -> Topic:
@@ -38,26 +49,35 @@ class BrokerService(rpyc.Service): # type: ignore
         return topicname
 
     # Handshake
+    @rpyc.exposed
+    def login(self, id: UserId, callback: FnNotify) -> bool:
+        self.id = id
+        self.callback = callback
+        self._online.append(id)
 
-    def exposed_login(self, id: UserId, callback: FnNotify) -> bool:
-        assert False, "TO BE IMPLEMENTED"
+        # Verifica se tem alguma notificação pendente
+        if id in self._queue.keys():
+            callback(self._queue[id])
+            del self._queue[id]
+
+        return True
 
     # Query operations
-
-    def exposed_list_topics(self) -> list[Topic]:
+    @rpyc.exposed
+    def list_topics(self) -> list[Topic]:
         return self._topics
 
     # Publisher operations
-
-    def exposed_publish(self, id: UserId, topic: Topic, data: str) -> bool:
+    @rpyc.exposed
+    def publish(self, id: UserId, topic: Topic, data: str) -> bool:
         """
         Função responde se Anúncio conseguiu ser publicado
         """
         assert False, "TO BE IMPLEMENTED"
 
     # Subscriber operations
-
-    def exposed_subscribe_to(self, id: UserId, topic: Topic) -> bool:
+    @rpyc.exposed
+    def subscribe_to(self, id: UserId, topic: Topic) -> bool:
         """
         Função responde se `id` está inscrito no `topic`
         """
@@ -71,8 +91,9 @@ class BrokerService(rpyc.Service): # type: ignore
             self._subscriptions[topic].append(id)
 
         return True
-    
-    def exposed_unsubscribe_to(self, id: UserId, topic: Topic) -> bool:
+
+    @rpyc.exposed
+    def unsubscribe_to(self, id: UserId, topic: Topic) -> bool:
         """
         Função responde se `id` não está inscrito no `topic`
         """
