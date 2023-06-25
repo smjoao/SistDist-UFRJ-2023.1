@@ -34,6 +34,9 @@ class BrokerService(rpyc.Service): # type: ignore
     # Lista de usuários online
     _online = []
 
+    # Callbacks dos usuarios. Chave é o usuário e o valor é a referência da função
+    _callbacks = {}
+
     def on_disconnect(self, conn):
         self._online.remove(self.id)
         print(f'Usuário {self.id} desconectou.')
@@ -56,7 +59,7 @@ class BrokerService(rpyc.Service): # type: ignore
             return False
             
         self.id = id
-        self.callback = callback
+        self._callbacks[id] = callback
         self._online.append(id)
 
         # Verifica se tem alguma notificação pendente
@@ -72,12 +75,40 @@ class BrokerService(rpyc.Service): # type: ignore
         return self._topics
 
     # Publisher operations
+    def send(self, id: UserId, content: Content) -> None:
+        """
+        Envia a notificação para um usuário
+        """
+        notify = self._callbacks[id]
+        notify([content])
+
+    def pending(self, id: UserId, content: Content) -> None:
+        """
+        Coloca a notificação na fila
+        """
+        if id in self._queue.keys():
+            self._queue[id].append(content)
+
+        else:
+            self._queue[id] = [content]
+
     @rpyc.exposed
     def publish(self, id: UserId, topic: Topic, data: str) -> bool:
         """
         Função responde se Anúncio conseguiu ser publicado
         """
-        assert False, "TO BE IMPLEMENTED"
+        if not topic in self._topics:
+            return False
+
+        notification = Content(author=id, topic=topic, data=data)
+
+        for sub in self._subscriptions[topic]:
+            if sub in self._online:
+                self.send(sub, notification)
+            else:
+                self.pending(sub, notification)
+
+        return True
 
     # Subscriber operations
     @rpyc.exposed
