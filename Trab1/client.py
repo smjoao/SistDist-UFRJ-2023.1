@@ -83,14 +83,14 @@ while True:
             
         elif op == 's':
             server = input('Informe o servidor no qual deseja se inscrever (todos): ')
-            topico = input('Informe o tópico ao qual deseja se inscrever: ')
+            topico = input('Informe o tópico ao qual deseja se inscrever (hello): ') or 'hello'
             for cookie in cookies:
                 if cookie.serverName == server or not server:
                     am_I_sub = cookie.conn.root.subscribe_to(cookie.userId, topico)
                     if am_I_sub:
-                        print("Inscrito a esse tópico com sucesso em ", cookie.serverName)
+                        print(f"Inscrito ao tópico \'{topico}\' com sucesso em {cookie.serverName}")
                     else:
-                        print("Não foi possível subescrever-se a esse tópico em ", cookie.serverName)
+                        print(f"Não foi possível subescrever-se ao tópico \'{topico}\' em {cookie.serverName}")
                     
         elif op == 'p':
             server = input('Informe o servidor para onde realizar a publicação (todos): ')
@@ -100,9 +100,9 @@ while True:
                 if cookie.serverName == server or not server:
                     did_it_pub = cookie.conn.root.publish(cookie.userId, topic, data)
                     if did_it_pub:
-                        print("Publicado com sucesso em ", cookie.serverName)
+                        print(f"Publicado com sucesso em {cookie.serverName}")
                     else:
-                        print("Não foi possível publicar em ", cookie.serverName)
+                        print(f"Não foi possível publicar em {cookie.serverName}")
                         
         elif op == 'l':
             server = input('Informe o servidor qual deseja listar os tópicos (todos): ')
@@ -114,13 +114,14 @@ while True:
                     
         elif op == 'u':
             server = input('Informe o servidor no qual deseja se desinscrever (todos): ')
+            topico = input('Informe o tópico ao qual deseja se desinscrever: ') or 'hello'
             for cookie in cookies:
                 if cookie.serverName == server or not server:
                     am_I_uns = cookie.conn.root.unsubscribe_to(cookie.userId, topico)
                     if am_I_uns:
-                        print("Desinscrito a esse tópico com sucesso em ", cookie.serverName)
+                        print(f"Desinscrito ao tópico \'{topico}\' com sucesso em {cookie.serverName}")
                     else:
-                        print("Não foi possível desinscrever-se a esse tópico em ", cookie.serverName)
+                        print(f"Não foi possível desinscrever-se ao \'{topico}\' tópico em {cookie.serverName}")
 
         else:
             print('Opção inválida')
