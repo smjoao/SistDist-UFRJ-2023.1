@@ -1,24 +1,5 @@
-from __future__ import annotations
-
-from typing import Callable, TypeAlias
-from dataclasses import dataclass
-
-import rpyc # type: ignore
-
-UserId: TypeAlias = str
-
-Topic: TypeAlias = str
-
-# Isso é para ser tipo uma struct
-# Frozen diz que os campos são read-only
-@dataclass(frozen=True, kw_only=True, slots=True)
-class Content:
-    author: UserId
-    topic: Topic
-    data: str
-
-FnNotify: TypeAlias = Callable[[list[Content]], None]
-
+from custom_types import *
+import time
 @rpyc.service
 class BrokerService(rpyc.Service): # type: ignore
 
@@ -37,20 +18,33 @@ class BrokerService(rpyc.Service): # type: ignore
     # Callbacks dos usuarios. Chave é o usuário e o valor é a referência da função
     _callbacks = {}
 
+
+    _start_time = 0.
+
     def __init__(self, topic_list):
+        
+        # Marca o tempo inicial (serve para imprimir logs indicando o tempo)
+        BrokerService._start_time = time.time()
+
         for topic in topic_list:
             self.create_topic(topic)
     
+    def print_log(*msg):
+        # Calcula o tempo desde que o servidor iniciou usando _start_time
+        timestamp = "{:7.2f}".format(time.time() - BrokerService._start_time)
+
+        print('\033[94m[' + timestamp + ']\033[0m', *msg, flush=True)
+
     def on_connect(self, conn):
         self.conn = conn
     
     def on_disconnect(self, conn):
         BrokerService._online.remove(self.id)
-        print(f'Usuário {self.id} desconectou.')
+        BrokerService.print_log(f'Usuário {self.id} desconectou.')
 
     # Não é exposed porque só o "admin" tem acesso
     def create_topic(self, topicname: str):
-        print(topicname)
+        BrokerService.print_log("Tópico", topicname, "adicionado!")
         # Se o tópico não existe, adiciona ele à lista de tópicos e adiciona uma chave na lista de inscrições
         if not topicname in BrokerService._topics:
             BrokerService._topics.append(topicname)
@@ -67,14 +61,14 @@ class BrokerService(rpyc.Service): # type: ignore
         
         self.id = id
         BrokerService._online.add(id)
-        BrokerService._callbacks[id] = callback
+        BrokerService._callbacks[id] = rpyc.async_(callback)
         
         user_contet_list = BrokerService._queue.pop(id, None)
         # Verifica se tem alguma notificação pendente
         if user_contet_list:
             callback(user_contet_list)
         
-        print(f'Usuário {id} conectou.')
+        BrokerService.print_log(f'Usuário {id} conectou.')
         return True
 
     # Query operations
@@ -83,18 +77,23 @@ class BrokerService(rpyc.Service): # type: ignore
         return BrokerService._topics
 
     # Publisher operations
-    def send(self, id: UserId, content: Content) -> None:
+    def send(id: UserId, content: Content) -> None:
         """
         Envia a notificação para um usuário
         """
+        BrokerService.print_log(f'Enviando publicação para {id}!')
+
         notify = BrokerService._callbacks[id]
         
         notify([content])
 
-    def pending(self, id: UserId, content: Content) -> None:
+    def pending(id: UserId, content: Content) -> None:
         """
         Coloca a notificação na fila
         """
+
+        BrokerService.print_log(f'Enfileirando publicação para {id}!')
+
         if id in BrokerService._queue.keys():
             BrokerService._queue[id].append(content)
 
@@ -111,11 +110,13 @@ class BrokerService(rpyc.Service): # type: ignore
 
         notification = Content(author=id, topic=topic, data=data)
 
+        BrokerService.print_log(f'Nova publicação de {id} para o tópico {topic}!')
+
         for sub in BrokerService._subscriptions[topic]:
             if sub in BrokerService._online:
-                self.send(sub, notification)
+                BrokerService.send(sub, notification)
             else:
-                self.pending(sub, notification)
+                BrokerService.pending(sub, notification)
 
         return True
 
@@ -134,6 +135,7 @@ class BrokerService(rpyc.Service): # type: ignore
         if not id in BrokerService._subscriptions[topic]:
             BrokerService._subscriptions[topic].append(id)
 
+        BrokerService.print_log(f'Usuário {id} se inscreveu no tópico {topic}!')
         return True
 
     @rpyc.exposed
@@ -149,6 +151,7 @@ class BrokerService(rpyc.Service): # type: ignore
         # Se o usuário estiver inscrito, remove ele da lista de inscrições do tópico
         if id in BrokerService._subscriptions[topic]:
             BrokerService._subscriptions[topic].remove(id)
+            BrokerService.print_log(f'Usuário {id} se desinscreveu no tópico {topic}!')
 
         return True
 
