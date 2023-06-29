@@ -54,6 +54,8 @@ def realizaLogin(conn):
 def handle_input(op):
     if op == 'e':
         finalizaConexao(cookies) # encerra as conexões com os servidores remotos
+        if new_notif != 0:
+            read_new_notifs()
         notif_buffer.close()
         print('Tchau! Até a próxima!')
         exit()
