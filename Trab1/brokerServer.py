@@ -33,7 +33,7 @@ class BrokerService(rpyc.Service): # type: ignore
         # Calcula o tempo desde que o servidor iniciou usando _start_time
         timestamp = "{:7.2f}".format(time.time() - BrokerService._start_time)
 
-        print('\033[94m[' + timestamp + ']\033[0m', *msg, flush=True)
+        print('\033[32m[' + timestamp + ']\033[0m', *msg, flush=True)
 
     def on_connect(self, conn):
         self.conn = conn

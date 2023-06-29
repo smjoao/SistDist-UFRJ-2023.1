@@ -37,7 +37,7 @@ def recebe_notificacao(msgs):
 
     if not msgs: return
     for msg in msgs:
-        size_to_read += notif_buffer.write(f"\033[91m[{msg.topic}] \033[96mAutor: {msg.author}\033[0m\n{msg.data}\n\n")
+        size_to_read += notif_buffer.write(f"\033[32m[{msg.topic}] \033[96mAutor: {msg.author}\033[0m\n{msg.data}\n\n")
         new_notif += 1
 
 cookies = [] # lista dos cookies de conexões estabelecidas com os servidores remotos
@@ -66,7 +66,7 @@ def handle_input(op):
         port = input('Informe a porta do servidor (18812): ') or 18812
         cookie = conecta(host, port)
         if cookie is None: return
-        print("conexão estabelecida: ", cookie.conn)
+        print("conexão estabelecida!")
         cookies.append(cookie)
         
     elif op == 's':
@@ -97,7 +97,7 @@ def handle_input(op):
         for cookie in cookies:
             if cookie.serverName == server or not server:
                 topic_list = cookie.conn.root.list_topics()
-                print(f'\033[91m---------------{cookie.serverName}---------------\033[0m')
+                print(f'\033[96m---------------{cookie.serverName}---------------\033[0m')
                 print(*topic_list, sep='\n')
                 print()
                 
@@ -145,8 +145,8 @@ def read_all_notifs():
 
 def print_menu():
     print('''\033[96m\033[1m========================== IC - UFRJ ============================\033[0m
-        \033[32mBoas Vindas ao Sistema de comunicação IC-UFRJ!\033[0m
-            \033[91ms - Inscrever-se em tópico
+        \033[96mBoas Vindas ao Sistema de comunicação IC-UFRJ!\033[0m
+            \033[32ms - Inscrever-se em tópico
             p - Publicar em um tópico
             l - Listar tópicos disponíveis
             u - Desinscrever-se de tópico
