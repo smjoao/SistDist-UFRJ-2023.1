@@ -39,8 +39,11 @@ class BrokerService(rpyc.Service): # type: ignore
         self.conn = conn
     
     def on_disconnect(self, conn):
-        BrokerService._online.remove(self.id)
-        BrokerService.print_log(f'Usuário {self.id} desconectou.')
+        if getattr(self, 'id', None):
+            BrokerService._online.remove(self.id)
+            BrokerService.print_log(f'Usuário {self.id} desconectou.')
+        else:
+            BrokerService.print_log(f'Usuário ???? desconectou. Algo de errado não está certo.')
 
     # Não é exposed porque só o "admin" tem acesso
     def create_topic(topicname: str):

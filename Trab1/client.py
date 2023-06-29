@@ -48,6 +48,7 @@ def realizaLogin(conn):
         serverName = input(f'Informe um nome para esse servidor (server{len(cookies)}): ') or f'server{len(cookies)}'
         bgsrv = rpyc.BgServingThread(conn) # Cria thread para lidar com chamadas de callbacks
         return Cookie(userId = userId, conn = conn, bgsrv=bgsrv, serverName = serverName)
+    conn.close()
     print('Não foi possível fazer login, tente novamente mais tarde')
     return None
 
