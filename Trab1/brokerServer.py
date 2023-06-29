@@ -21,13 +21,13 @@ class BrokerService(rpyc.Service): # type: ignore
 
     _start_time = 0.
 
-    def __init__(self, topic_list):
+    def initialize(topic_list):
         
         # Marca o tempo inicial (serve para imprimir logs indicando o tempo)
         BrokerService._start_time = time.time()
 
         for topic in topic_list:
-            self.create_topic(topic)
+            BrokerService.create_topic(topic)
     
     def print_log(*msg):
         # Calcula o tempo desde que o servidor iniciou usando _start_time
@@ -43,7 +43,7 @@ class BrokerService(rpyc.Service): # type: ignore
         BrokerService.print_log(f'Usuário {self.id} desconectou.')
 
     # Não é exposed porque só o "admin" tem acesso
-    def create_topic(self, topicname: str):
+    def create_topic(topicname: str):
         BrokerService.print_log("Tópico", topicname, "adicionado!")
         # Se o tópico não existe, adiciona ele à lista de tópicos e adiciona uma chave na lista de inscrições
         if not topicname in BrokerService._topics:

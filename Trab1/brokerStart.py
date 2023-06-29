@@ -22,10 +22,10 @@ if __name__ == '__main__':
     print("\033c", end="") # Limpa o terminal
     print('\033[96m\033[1m======================= SERVIDOR IC - UFRJ =======================\033[0m\nAperte Ctrl+C a qualquer momento para finalizar...\n')
 
-    broker = BrokerService(topic_list)
+    BrokerService.initialize(topic_list)
 
     # dispara o servidor
-    srv = ThreadedServer(broker, port = PORT, protocol_config={"allow_public_attrs": True})
+    srv = ThreadedServer(BrokerService, port = PORT, protocol_config={"allow_public_attrs": True})
     srv.start()
 
 
