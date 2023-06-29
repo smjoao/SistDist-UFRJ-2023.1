@@ -57,7 +57,7 @@ class BrokerService(rpyc.Service): # type: ignore
     def login(self, id: UserId, callback: FnNotify) -> bool:
         # Verifica se esse id já está logado
         if id in BrokerService._online:
-            return True
+            return False
         
         self.id = id
         BrokerService._online.add(id)
@@ -73,7 +73,7 @@ class BrokerService(rpyc.Service): # type: ignore
 
     # Query operations
     @rpyc.exposed
-    def list_topics(self) -> list[Topic]:
+    def list_topics(self) -> TopicList:
         return BrokerService._topics
 
     # Publisher operations

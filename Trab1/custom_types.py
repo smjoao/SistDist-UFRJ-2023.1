@@ -26,12 +26,16 @@ if IS_NEW_PYTHON:
         author: UserId
         topic: Topic
         data: str
+
+    TopicList: TypeAlias = list[Topic]
 elif not TYPE_CHECKING:
     @dataclass(frozen=True)
     class Content:
         author: UserId
         topic: Topic
         data: str
+
+    TopicList: TypeAlias = list
 
 if IS_NEW_PYTHON:
     @dataclass(frozen=True, kw_only=True, slots=True)
